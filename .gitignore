@@ -1,0 +1,12 @@
+# Python
+*.pyc
+*.pyo
+__pycache__/
+
+# Data folder
+/data/
+
+# secrets
+.env
+user-login.txt
+user-pass.txt

@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:latest
+    ports:
+      - 3306:3306
+    env_file:
+      - .env
+    volumes:
+      - ./schema:/docker-entrypoint-initdb.d
+      - db_data:/var/lib/mysql
+      - ./user-pass.txt:/docker-entrypoint-initdb.d/user-pass.txt
+      - ./user-login.txt:/docker-entrypoint-initdb.d/user-login.txt
+    command: --secure-file-priv="" --tls-version=''
+
+volumes:
+  db_data:

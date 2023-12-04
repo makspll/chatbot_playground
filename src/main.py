@@ -77,8 +77,10 @@ def iterate_sql_gen(question: str, max_tries: int = 2) -> Tuple[Optional[str], O
         logging.info('Generated context prompt: %s', context_prompt)
         
         try:
+            logging.info("Calling LLM")
             sql_generated = call_llm_api(context_prompt)
         except Exception as E:
+            logging.error(f"Error calling LLM: {E}")
             raise APIException(ErrorType.ERROR_GENERATING_ANSWER, None, 'Error calling LLM API, please try again later, we might have hit our free tier rate limit :)')
         if "valid" in sql_generated.lower():
             logging.info("Model is happy with the result")

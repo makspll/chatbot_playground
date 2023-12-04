@@ -10,16 +10,18 @@ from enum import Enum
 
 from dotenv import load_dotenv
 from typing import Tuple, Optional
-load_dotenv(sys.argv[1] if len(sys.argv) > 1 else None)
+
+
+app = Flask(__name__)
+
+# optionally allow env_file arg
+load_dotenv(app.config.get("env_file", None))
 
 log_level = os.getenv('LOG_LEVEL', 'INFO').upper()
 numeric_level = getattr(logging, log_level, None)
 if not isinstance(numeric_level, int):
     raise ValueError(f'Invalid log level: {log_level}')
 logging.basicConfig(level=numeric_level)
-
-app = Flask(__name__)
-
 class ErrorType(Enum):
     VALIDATION_ERROR = 400
     ERROR_GENERATING_ANSWER = 500

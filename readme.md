@@ -33,6 +33,7 @@ Cons:
     ```
 - Run the SQL container using `docker compose up`
 - The local DB requires user-login.txt and user-pass.txt in the root directory (same one as in .env file)
+- `python src/main.py` to run the dev server
 
 ## Prod
 Use gunicorn with `main:app` set timeout to high and pass ENV_FILE environment variable pointing to your .env file

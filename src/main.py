@@ -1,6 +1,7 @@
 from enum import Enum
 import logging
 import os
+import sys
 from typing import Optional
 from flask import Flask, request, jsonify
 from db import create_mysql_connection, run_query_many
@@ -9,7 +10,7 @@ from enum import Enum
 
 from dotenv import load_dotenv
 from typing import Tuple, Optional
-load_dotenv()
+load_dotenv(sys.argv[1] if len(sys.argv) > 1 else None)
 
 log_level = os.getenv('LOG_LEVEL', 'INFO').upper()
 numeric_level = getattr(logging, log_level, None)

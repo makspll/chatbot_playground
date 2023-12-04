@@ -21,6 +21,7 @@ Cons:
 # Usage
 
 ## Development
+- `pip install -r requirements.txt` in a venv
 - needs an .env file in the root directory:
     ```bash
     MYSQL_ROOT_PASSWORD=pass

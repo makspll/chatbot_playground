@@ -94,6 +94,7 @@ def iterate_sql_gen(question: str, max_tries: int = 2) -> Tuple[Optional[str], O
         logging.info("Model Generated SQL: %s", sql_generated)
 
         try:
+            logging.info("Running generated SQL")
             sql_output = run_query_many(sql_generated, 10, create_mysql_connection())
             logging.info("Returned SQL: %s", sql_output)
         except Exception as E:

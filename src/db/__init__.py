@@ -30,12 +30,14 @@ def create_mysql_connection() -> mysql.connector.connection.MySQLConnection:
 
 def run_query_many(query: str, max_rows: int, connection: mysql.connector.connection.MySQLConnection) -> str:
     """ Runs a query expecting muliple rows as a result and returns the result as a string"""
+    logging.info("Starting cursor")
     cursor = connection.cursor()
-    logging.info("Received query: %s", query)
+    logging.info("Executing query: %s", query)
     # Execute the query
     cursor.execute(query)
 
     # Fetch the results
+    logging.info("Fetching results one by one")
     results = cursor.fetchmany(max_rows)
 
     # Convert results to string using StringBuilder

@@ -15,7 +15,7 @@ from typing import Tuple, Optional
 app = Flask(__name__)
 
 # optionally allow env_file arg
-load_dotenv(app.config.get("env_file", None))
+load_dotenv(os.environ.get("ENV_FILE", None))
 
 log_level = os.getenv('LOG_LEVEL', 'INFO').upper()
 numeric_level = getattr(logging, log_level, None)

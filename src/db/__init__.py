@@ -14,7 +14,7 @@ def create_mysql_connection() -> mysql.connector.connection.MySQLConnection:
     mysql_user = os.getenv("DB_USERNAME")
     mysql_password = os.getenv("DB_PASSWORD")
     mysql_database = os.getenv("MYSQL_DATABASE")
-
+    logging.info(f"Connecting to mysql: host: {mysql_host}, user: {mysql_user}, database: {mysql_database}")
     # Create MySQL connection object
     connection = mysql.connector.connect(
         host=mysql_host,

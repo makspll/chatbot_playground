@@ -122,12 +122,12 @@ class BlockingRateLimiter:
     calls_this_minute = 0
     def __init__(self, max_calls_per_minute: int):
         self.max_calls_per_minute = max_calls_per_minute
-
+        self.client = OpenAI(max_retries=0)
     def call(self, f: Callable[[OpenAI], T]) -> T:
         BlockingRateLimiter.calls_this_minute += 1
         BlockingRateLimiter.last_call_time = datetime.datetime.now()
-        client = OpenAI(max_retries=0)
-        return f(client)
+        logging.info("Providing open API Client")
+        return f(self.client)
         
     def __enter__(self):
         # lock to prevent other flask threads from calling the API too much

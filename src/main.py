@@ -18,12 +18,22 @@ app = Flask(__name__)
 
 load_dotenv(os.environ.get("ENV_FILE", None))
 
-log_level = os.getenv('LOG_LEVEL', 'INFO').upper()
-numeric_level = getattr(logging, log_level, None)
-if not isinstance(numeric_level, int):
-    raise ValueError(f'Invalid log level: {log_level}')
-logging.basicConfig(level=numeric_level)
-logging.info(f"env file override: {os.environ.get('ENV_FILE', None)}")
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+formatter = logging.Formatter('%(asctime)s | %(levelname)s | %(message)s')
+
+stdout_handler = logging.StreamHandler(sys.stdout)
+stdout_handler.setLevel(logging.INFO)
+stdout_handler.setFormatter(formatter)
+
+file_handler = logging.FileHandler('logs.log')
+file_handler.setLevel(logging.INFO)
+file_handler.setFormatter(formatter)
+
+
+logger.addHandler(file_handler)
+logger.addHandler(stdout_handler)
+
 class ErrorType(Enum):
     VALIDATION_ERROR = 400
     ERROR_GENERATING_ANSWER = 500

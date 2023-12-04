@@ -6,8 +6,8 @@ CREATE TABLE user_data (
     Education VARCHAR(255) NOT NULL, -- customer's level of education
     Marital_Status VARCHAR(255) NOT NULL,
     Income INT, -- customer's yearly household income
-    Kidhome BOOLEAN NOT NULL, -- number of small children in customer's household
-    Teenhome BOOLEAN NOT NULL, -- number of teenagers in customer's household
+    NoOfKidsHome INT NOT NULL, -- number of small children in customer's household
+    NoOfTeensHome INT NOT NULL, -- number of teenagers in customer's household
     Dt_Customer DATE NOT NULL, -- date of customer's enrollment with the company
     Recency INT NOT NULL, -- number of days since the last purchase
     MntWines INT NOT NULL, -- amount spent on wine in the last 2 years

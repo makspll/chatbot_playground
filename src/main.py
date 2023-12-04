@@ -8,6 +8,7 @@ from gen import call_llm_api, generate_context_prompt, generate_primary_prompt
 from enum import Enum
 
 from dotenv import load_dotenv
+from typing import Tuple, Optional
 load_dotenv()
 
 log_level = os.getenv('LOG_LEVEL', 'INFO').upper()
@@ -20,6 +21,7 @@ app = Flask(__name__)
 
 class ErrorType(Enum):
     VALIDATION_ERROR = 400
+    ERROR_GENERATING_ANSWER = 500
 
 class APIException(Exception):
     def __init__(self, error_type: ErrorType, path: Optional[str], message: str):
@@ -27,10 +29,15 @@ class APIException(Exception):
         self.path = path
         self.message = message
 
-
-
-class AppState:
-    mysql_connection = create_mysql_connection()
+@app.errorhandler(APIException)
+def handle_custom_exception(error):
+    response = jsonify({
+        'kind': error.error_type.name,
+        'path': error.path,
+        'message': error.message
+    })
+    response.status_code = error.error_type.value
+    return response
 
 
 @app.route('/questions', methods=['POST'])
@@ -43,27 +50,14 @@ def handle_questions():
         raise APIException(ErrorType.VALIDATION_ERROR, 'question', 'Question is required')
 
     logging.info('Received question: %s', question)
-    context_prompt = generate_context_prompt(question)
-    logging.info('Generated context prompt: %s', context_prompt)
-    
-    sql_generated = call_llm_api(context_prompt)
-    logging.info("Model Generated SQL: %s", sql_generated)
-
-    sql_output = "<error>"
-    try:
-        sql_output = run_query_many(sql_generated, 50, AppState.mysql_connection)
-        logging.info("Returned SQL: %s", sql_output)
-    except Exception as E:
-        logging.error("Error running SQL: %s", E)
-        # TODO: give the error back to the AI and let it fix it once, then try again
-        return {
-            "response": "Sorry, I couldn't understand your question. Please try again."
-        }, 200
-       
+    sql_generated,sql_output = iterate_sql_gen(question, max_tries=5)     
     primary_prompt = generate_primary_prompt(question, sql_generated, sql_output)
     logging.info('Generated primary prompt: %s', primary_prompt)
 
-    final_response = call_llm_api(primary_prompt)
+    try:
+        final_response = call_llm_api(primary_prompt)
+    except Exception as E:
+        raise APIException(ErrorType.ERROR_GENERATING_ANSWER, None, 'Error calling LLM API, please try again later, we might have hit our free tier rate limit :)')
     logging.info('Model final response: %s', final_response)
 
     return {
@@ -71,18 +65,42 @@ def handle_questions():
     }, 200
 
 
-@app.errorhandler(APIException)
-def handle_custom_exception(error):
-    response = jsonify({
-        'kind': error.error_type.name,
-        'path': error.path,
-        'message': error.message
-    })
-    response.status_code = error.error_type.value
-    return response
+
+
+def iterate_sql_gen(question: str, max_tries: int = 2) -> Tuple[Optional[str], Optional[str]]:
+    sql_generated = None
+    sql_output = None
+    last_sql_generated = None
+    while max_tries > 0:
+        logging.info(f"Iterating on the sql generation, leftover tries: {max_tries}")
+        context_prompt = generate_context_prompt(question, sql_generated, sql_output)
+        logging.info('Generated context prompt: %s', context_prompt)
+        
+        try:
+            sql_generated = call_llm_api(context_prompt)
+        except Exception as E:
+            raise APIException(ErrorType.ERROR_GENERATING_ANSWER, None, 'Error calling LLM API, please try again later, we might have hit our free tier rate limit :)')
+        if "valid" in sql_generated.lower():
+            logging.info("Model is happy with the result")
+            return last_sql_generated, f"Query:{last_sql_generated}, Summary: {sql_generated}, DB Output: {sql_output}"
+        
+        logging.info("Model Generated SQL: %s", sql_generated)
+
+        try:
+            sql_output = run_query_many(sql_generated, 10, create_mysql_connection())
+            logging.info("Returned SQL: %s", sql_output)
+        except Exception as E:
+            sql_output = f"An error happend when running your query: {str(E)}"
+            logging.error("Error running SQL: %s", E)
+        max_tries -= 1
+        last_sql_generated = sql_generated
+
+    return sql_generated, sql_output
+
 
 if __name__ == '__main__':
     app.run()
+
 
 
 

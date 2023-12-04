@@ -15,6 +15,7 @@ from typing import Tuple, Optional
 app = Flask(__name__)
 
 # optionally allow env_file arg
+
 load_dotenv(os.environ.get("ENV_FILE", None))
 
 log_level = os.getenv('LOG_LEVEL', 'INFO').upper()
@@ -22,6 +23,7 @@ numeric_level = getattr(logging, log_level, None)
 if not isinstance(numeric_level, int):
     raise ValueError(f'Invalid log level: {log_level}')
 logging.basicConfig(level=numeric_level)
+logging.info(f"env file override: {os.environ.get('ENV_FILE', None)}")
 class ErrorType(Enum):
     VALIDATION_ERROR = 400
     ERROR_GENERATING_ANSWER = 500

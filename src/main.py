@@ -53,7 +53,9 @@ def handle_questions():
     # input validation
     if not question:
         raise APIException(ErrorType.VALIDATION_ERROR, 'question', 'Question is required')
-
+    if len(question) > 200:
+        raise APIException(ErrorType.VALIDATION_ERROR, 'question', 'Question must be less than 200 characters')
+    
     logging.info('Received question: %s', question)
     sql_generated,sql_output = iterate_sql_gen(question, max_tries=5)     
     primary_prompt = generate_primary_prompt(question, sql_generated, sql_output)
